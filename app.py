@@ -32,7 +32,7 @@ def upload_image():
             }), 500
 
         # Inițializăm modelul Gemini (folosind un model multimodal compatibil, ex: gemini-1.5-flash)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-3.5-flash-lite')
 
         # Pregătim imaginea pentru a fi trimisă către Gemini (folosind formatul binar raw)
         image_part = {
