@@ -10,7 +10,6 @@ if api_key:
     genai.configure(api_key=api_key)
 
 def remove_diacritics(text):
-    """Elimina diacriticele din text."""
     text = unicodedata.normalize('NFD', text)
     text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
     for old, new in [('ă','a'), ('â','a'), ('î','i'), ('ș','s'), ('ț','t'),
@@ -35,7 +34,6 @@ def upload_image():
         if not image_bytes.startswith(b'\xff\xd8'):
             return jsonify({"status": "error", "message": "Format invalid"}), 400
 
-        # Modelul care functioneaza la tine
         model = genai.GenerativeModel('gemini-3.5-flash-lite')
         
         image_part = {
@@ -43,7 +41,6 @@ def upload_image():
             "data": image_bytes
         }
         
-        # PROMPTUL NOU - pentru exercitii scolare
         prompt = """Analizeaza cu atentie exercitiile/intrebarile de pe fotografie.
 
 INSTRUCTIUNI SPECIFICE:
@@ -108,5 +105,6 @@ def health_check():
     return jsonify({"status": "ok"}), 200
 
 if __name__ == '__main__':
+    # Aici pornim serverul simplu, fara gunicorn
     app.run(host='0.0.0.0', port=5000, threaded=True)
     
