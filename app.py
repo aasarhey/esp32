@@ -1,24 +1,50 @@
 import os
-import unicodedata
-from flask import Flask, request, jsonify
-import google.generativeai as genai
+from flask import Flask, request, render_template_string, Response
 
 app = Flask(__name__)
 
-api_key = os.environ.get("GEMINI_API_KEY")
-if api_key:
-    genai.configure(api_key=api_key)
+# Variabila globala care va retine ultima imagine primita de la ESP32-CAM
+latest_image = None
+
+# ==========================================
+# PAGINA WEB PENTRU VIZUALIZARE LIVE / FOCUS
+# ==========================================
+@app.route('/', methods=['GET'])
+def index():
+    html_page = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>ESP32-CAM Live View & Focus</title>
+        <meta http-equiv="refresh" content="2"> <!-- Se reface pagina automat la fiecare 2 secunde -->
+        <style>
+            body { font-family: Arial, sans-serif; text-align: center; background: #222; color: #fff; margin-top: 30px; }
+            img { max-width: 100%; height: auto; border: 4px solid #444; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+            .info { margin: 15px; font-size: 18px; color: #aaa; }
+        </style>
+    </head>
+    <body>
+        <h1>ESP32-CAM Live View (Focus Adjust)</h1>
+        <div class="info">Mod Preview Activ. Pagina se actualizeaza automat la fiecare 2 secunde.</div>
+        <div>
+            <img src="/image.jpg" alt="Ultima imagine capturata de ESP32">
+        </div>
+    </body>
+    </html>
+    """
+    return render_template_string(html_page)
 
 
-def remove_diacritics(text):
-    text = unicodedata.normalize('NFD', text)
-    text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
-
-    for old, new in [('ă','a'), ('â','a'), ('î','i'), ('ș','s'), ('ț','t'),
-                     ('Ă','A'), ('Â','A'), ('Î','I'), ('Ș','S'), ('Ț','T')]:
-        text = text.replace(old, new)
-
-    return text
+# ==========================================
+# RUTA PENTRU AFISAREA IMAGINII JPEG BRUTE
+# ==========================================
+@app.route('/image.jpg', methods=['GET'])
+def get_latest_image():
+    global latest_image
+    if latest_image:
+        return Response(latest_image, mimetype='image/jpeg')
+    else:
+        return "Nicio imagine capturată încă.", 404
 
 
 # ==========================================
@@ -30,108 +56,35 @@ def health_check():
 
 
 # ==========================================
-# UPLOAD IMAGINE
+# UPLOAD IMAGINE DE LA ESP32 (DOAR PREVIEW)
 # ==========================================
 @app.route('/upload', methods=['POST'])
 def upload_image():
+    global latest_image
     try:
         image_bytes = request.data
 
         if not image_bytes or len(image_bytes) == 0:
-            return jsonify({
-                "status": "error",
-                "message": "Nicio imagine"
-            }), 400
-
-        if len(image_bytes) > 10 * 1024 * 1024:
-            return jsonify({
-                "status": "error",
-                "message": "Imagine prea mare"
-            }), 413
-
-        if not api_key:
-            return jsonify({
-                "status": "error",
-                "message": "Lipseste cheia API"
-            }), 500
+            return "Nicio imagine", 400
 
         if not image_bytes.startswith(b'\xff\xd8'):
-            return jsonify({
-                "status": "error",
-                "message": "Format invalid"
-            }), 400
+            return "Format invalid", 400
 
-        model = genai.GenerativeModel('gemini-3.5-flash-lite')
+        # Salvam imaginea in memorie pentru preview in browser
+        latest_image = image_bytes
+        print(f"Imagine primita cu succes! Dimensiune: {len(image_bytes)} octeti")
 
-        image_part = {
-            "mime_type": "image/jpeg",
-            "data": image_bytes
-        }
-
-        prompt = """Analizeaza cu atentie exercitiile/intrebarile de pe fotografie.
-
-INSTRUCTIUNI SPECIFICE:
-
-1. Identifica obiectul scolar (chimie, fizica, biologie, matematica etc.)
-
-2. CHIMIE:
-   - Scrie etapele si logica rezolvarii
-   - Simbolul "niu" se scrie cu litere latine: niu
-   - Volum = V
-   - Volum molar = Vm
-   - Partea de masa (procentaj) = W
-   - Foloseste simboluri simple: / pentru impartit, * pentru inmultit
-   - Delimiteaza ordinea operatiilor cu paranteze
-   - Egalare reactii chimice OBLIGATORIE
-   - Indici in compusi chimici: cifre simple (ex: H2SO4, Ca(OH)2)
-   - Foloseste paranteze pentru grupari multiple (ex: Ca(OH)2)
-
-3. FIZICA:
-   - Frecventa = niu (scris cu litere latine)
-   - Explica pasii de rezolvare
-
-4. BIOLOGIE:
-   - Pentru exercitii de asemanare/deosebire: specifica clar 3 asemanari si 3 deosebiri cu criterii clare
-   - Exemplu: ADN vs ARN
-
-5. INTREBARI ADEVARAT/FALS:
-   - Raspunde cu explicatii complete
-
-6. GENERAL:
-   - Raspunsuri logice si verificate pentru a evita erori
-   - Explica in cuvinte unde e nevoie
-   - Foloseste doar caractere ASCII (fara diacritice, fara simboluri speciale)
-
-Raspunde in limba romana, fara diacritice."""
-
-        try:
-            response = model.generate_content([image_part, prompt])
-            clean_text = remove_diacritics(response.text)
-
-            return jsonify({
-                "status": "success",
-                "analysis": clean_text
-            }), 200
-
-        except Exception as gemini_error:
-            return jsonify({
-                "status": "error",
-                "message": "Gemini nu raspunde",
-                "details": str(gemini_error)
-            }), 503
+        # Trimitem text simplu care va aparea direct pe ecranul OLED al ESP32-CAM
+        return "Preview OK", 200
 
     except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": "Eroare server",
-            "details": str(e)
-        }), 500
+        return "Eroare server", 500
 
 
 if __name__ == '__main__':
-    # Pornim serverul simplu, fara gunicorn
     app.run(
         host='0.0.0.0',
         port=5000,
         threaded=True
     )
+    
