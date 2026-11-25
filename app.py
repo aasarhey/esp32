@@ -78,4 +78,64 @@ d) 2 zone/regiuni (atlas pag. 4-5): Cercul de Foc al Pacificului, Islanda / Hawa
 - Placa formata doar din crusta oceanica are grosimea de: 5-12 km
 - asemanatoare ca structura este placa: oceanica (litosferica oceanica)
 - In cadrul crustei oceanice lipseste patura: granito-metamor fica (granitica)
-- Corpuri naturale formate in rezultatul combinarii elementelor chimice se
+- Corpuri naturale formate in rezultatul combinarii elementelor chimice se numesc: roci / minerale
+- Miscarile orogenice de cutare au dat nastere unitatilor de relief numite: munti cutati
+- Procesul de largire a fundului oceanic se numeste: expansiune oceanica (spreading / riftogeneza)
+- caracteristic in prezent oceanului: Atlantic / Pacific
+
+3. ANALIZA SCHEMEI (Fig. 1 - curenti de convectie / astenosfera):
+a) Procesul in zona (a): subductie / convergenta placilor litosferice (sau rift/divergenta in functie de sageti)
+b) Descriere: coborarea unei placi litosferice sub alta placa in astenosfera, insotita de topire partiala si tensiuni tectonice
+c) 3 procese/fenomene asociate: cutremure de pamant, vulcanism, metamorfism / formarea muntilor
+d) Forme de relief rezultate: fose oceanice, munti cutati / arcuri insulare vulcanice
+
+4. CLASIFICARE ROCI SEDIMENTARE:
+- Tipul: detritice -> 1. nisip, 2. argila
+- Tipul: chimice -> 1. sare gema, 2. ghips
+- Tipul: organogene -> 1. carbune, 2. calcar
+
+3. TABEL (poza 4 - relief carstic vs relief glaciar):
+- Stanga (Relief carstic):
+  * Tip relief: Relief carstic
+  * Agent: Apa (ape subterane / carstice / de infiltratie)
+  * Procese: dizolvarea rocilor solubile/usor solubile, precipitarea
+  * Forme (min. 2): pesteri, doline, avene, stalactite, stalagmite
+  * Raspandire: In zonele subtropicale, temperate: Romania, Moldova (podis, platou)
+- Dreapta (Relief glaciar):
+  * Tip relief: Relief glaciar
+  * Agent: Gheata / ghetarii
+  * Procese: eroziunea glaciara (exaratie, smulgere, abraziune glaciara), transport si acumulare glaciara
+  * Forme (min. 2): circuri glaciare, vai glaciare, morene, custuri
+  * Raspandire: munti inalti (Alpi, Carpati, Himalaya, Anzi) si regiuni polare
+
+4. MUNTII ANZI:
+a) Pozitia geografica: vestul Americii de Sud (de-a lungul tarmului Oceanului Pacific)
+b) Directia generala de desfasurare: nord-sud (N-S)
+c) Varsta muntilor: tineri (orogeneza alpina / neozoica)
+d) Geneza muntilor: miscari orogenice de cutare / subductia placii Nazca sub placa Sud-Americana + vulcanism
+e) Coordonatele varfului Aconcagua: ~32°39' lat. Sud, ~70°01' long. Vest
+
+ALUNECARI DE TEREN (algoritm de jos):
+1a) Cauza naturala: precipitatii abundente / topirea brusca a zapezilor / cutremure / pante inclinate si roci argiloase
+1b) Cauza antropica: defrisari / constructii sau terasamente pe pante / irigatii excesive / suprapasunat
+"""
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return "OK", 200
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    _ = request.data
+    return TEXT_AFISAT, 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
+if __name__ == '__main__':
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        threaded=True
+    )
+   
