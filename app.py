@@ -1,84 +1,75 @@
-import os
-from flask import Flask, request, render_template_string, Response
+from flask import Flask, request
 
 app = Flask(__name__)
 
-# Variabila globala care va retine ultima imagine primita de la ESP32-CAM
-latest_image = None
+TEXT_AFISAT = """TEST LITOSFERA - VAR. II
 
-# ==========================================
-# PAGINA WEB PENTRU VIZUALIZARE LIVE / FOCUS
-# ==========================================
-@app.route('/', methods=['GET'])
-def index():
-    html_page = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>ESP32-CAM Live View & Focus</title>
-        <meta http-equiv="refresh" content="2"> <!-- Se reface pagina automat la fiecare 2 secunde -->
-        <style>
-            body { font-family: Arial, sans-serif; text-align: center; background: #222; color: #fff; margin-top: 30px; }
-            img { max-width: 100%; height: auto; border: 4px solid #444; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-            .info { margin: 15px; font-size: 18px; color: #aaa; }
-        </style>
-    </head>
-    <body>
-        <h1>ESP32-CAM Live View (Focus Adjust)</h1>
-        <div class="info">Mod Preview Activ. Pagina se actualizeaza automat la fiecare 2 secunde.</div>
-        <div>
-            <img src="/image.jpg" alt="Ultima imagine capturata de ESP32">
-        </div>
-    </body>
-    </html>
-    """
-    return render_template_string(html_page)
+I. CUNOAȘTERE ȘI ÎNȚELEGERE
+1.1: a (30-80 km)
+1.2: c (2900 km)
+1.3: b (rigole)
+1.4: b (șiroire)
+1.5: c (mine, halde)
+
+2. COMPLETARE TERMENI:
+- contact de tip: convergent
+- placa (oceanică) coboară sub cea continentală
+- împinsă din zona de: rift
+- suprafață înclinată: planul Benioff
+- asimilată în: astenosferă
+- procesul: subducție (subducția plitelor)
+- ramurile descendente ale: curenți subcrustali
+- provoacă: cutremure de pământ
+- hipocentru la 300-700 km: adâncime
+- alte fenomene: vulcanism, fose oceanice, formarea munților cutați
+
+3. ADEVĂRAT / FALS:
+- AF1: F -> biochimice = biofizice / mecanice (sau fizice)
+- AF2: A
+- AF3: F -> Ravenele = Rigolele
+- AF4: F -> Rocile sedimentare = Rocile eluviale / deluviale (sau alterarea)
+
+4. MIȘCĂRI TECTONICE:
+- Oscilatorii: ridicare/coborâre lentă, de amploare mică pe arii vaste; ex: Pen. Scandinavică, Scoția, Uralul de Nord
+- Plictisitoare/Cute (orogenice de cutare): deformarea straturilor, anticlinale/sinclinale; ex: munți cutați (Alpi, Carpați, Himalaya)
+
+5. CLASIFICARE RELIEF:
+- Forme planetare: Continentul Africa, Oceanul Arctic
+- Forme majore: Podișul Tibet, Groapa Marianelor
+- Mezoforme de relief: Cheile Bicazului, Marele Canion Colorado
+
+II. APLICARE ȘI OPERARE
+6. DESFĂȘURAREA CHINEI (40° lat. N, 1° = 85,4 km):
+- Longitudini aprox. (harta Asiei p. 46-47): ~73°E - ~135°E (diferență ~62° long.)
+- Distanța în grade: ~62°
+- Distanța în km: 62 * 85,4 km ≈ 5294,8 km (variază ușor în funcție de citirea exactă de pe hartă, ±2° la longitudine)
+
+7. TEMPERATURA ÎN SCOARȚĂ (2610 m, strat izoterm +24°C):
+- a. Gradient geotermic: 100 m = ~3°C (valoare medie standard; verifică valoarea din manualul tău)
+- b. Creștere temperatură pe 2610 m: (2610 / 100) * 3°C = 26,1 * 3°C = +78,3°C
+- c. Temperatura la 2610 m: 24°C + 78,3°C = +102,3°C
+
+8. ANALIZA IMAGINII (COLIZIUNE CONTINENTALĂ / SUBDUCȚIE):
+- a. Procesul: coliziune continentală / subducție
+- b. Plite litosferice: placă continentală și placă oceanică (litosferă continentală / oceanică)
+- c. Regiune exemplu: Himalaya / Anzi / Alpi
+- d. 3 fenomene asociate: cutremure de pământ, vulcanism, formarea munților (orogeneză)
+
+III. INTEGRARE - CUTREMURE
+1a. Cauză naturală: mișcările plăcilor litosferice / activitatea tectonică
+1b. Cauză antropică: exploatări miniere / baraje mari / extracții sau injecții în subsol / teste nucleare
+"""
 
 
-# ==========================================
-# RUTA PENTRU AFISAREA IMAGINII JPEG BRUTE
-# ==========================================
-@app.route('/image.jpg', methods=['GET'])
-def get_latest_image():
-    global latest_image
-    if latest_image:
-        return Response(latest_image, mimetype='image/jpeg')
-    else:
-        return "Nicio imagine capturată încă.", 404
-
-
-# ==========================================
-# HEALTH CHECK - pentru UptimeRobot
-# ==========================================
 @app.route('/health', methods=['GET'])
 def health_check():
     return "OK", 200
 
 
-# ==========================================
-# UPLOAD IMAGINE DE LA ESP32 (DOAR PREVIEW)
-# ==========================================
 @app.route('/upload', methods=['POST'])
-def upload_image():
-    global latest_image
-    try:
-        image_bytes = request.data
-
-        if not image_bytes or len(image_bytes) == 0:
-            return "Nicio imagine", 400
-
-        if not image_bytes.startswith(b'\xff\xd8'):
-            return "Format invalid", 400
-
-        # Salvam imaginea in memorie pentru preview in browser
-        latest_image = image_bytes
-        print(f"Imagine primita cu succes! Dimensiune: {len(image_bytes)} octeti")
-
-        # Trimitem text simplu care va aparea direct pe ecranul OLED al ESP32-CAM
-        return "Preview OK", 200
-
-    except Exception as e:
-        return "Eroare server", 500
+def upload():
+    _ = request.data
+    return TEXT_AFISAT, 200, {"Content-Type": "text/plain; charset=utf-8"}
 
 
 if __name__ == '__main__':
@@ -87,4 +78,4 @@ if __name__ == '__main__':
         port=5000,
         threaded=True
     )
-  
+    
